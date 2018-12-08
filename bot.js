@@ -113,9 +113,9 @@ class BasicBot {
 
             // Perform a call to LUIS to retrieve results for the current activity message.
             const results = await this.luisRecognizer.recognize(context);
-            console.log(results,'results')
+            
             const topIntent = LuisRecognizer.topIntent(results);
-            console.log(results.entities, 'entities');
+            
             // update user profile property with any entities captured by LUIS
             // This could be user responding with their name or city while we are in the middle of greeting dialog,
             // or user saying something like 'i'm {userName}' while we have no active multi-turn dialog.
@@ -140,7 +140,6 @@ class BasicBot {
                 switch (dialogResult.status) {                    
                     // dc.continueDialog() returns DialogTurnStatus.empty if there are no active dialogs
                     case DialogTurnStatus.empty:
-                    console.log(topIntent," - topintent");
                         // Determine what we should do based on the top intent from LUIS.
                         switch (topIntent) {
                             case GREETING_INTENT:
@@ -148,23 +147,23 @@ class BasicBot {
                                 break;
                             
                             case ASSIGNMENT_INTENT:
-                                await dc.context.sendActivity('Assignment intent detected');
+                                await dc.context.sendActivity(`Assignment intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
                                 
                             case LOGIN_INTENT:
-                                await dc.context.sendActivity('Login intent detected');
+                                await dc.context.sendActivity(`Login intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
                                 
                             case REPORT_INTENT:
-                                await dc.context.sendActivity('REPORT intent detected');
+                                await dc.context.sendActivity(`REPORT intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
                                 
                             case CORRECTION_INTENT:
-                                await dc.context.sendActivity('Correction intent detected');
+                                await dc.context.sendActivity(`Correction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
                                 
                             case TRANSACTION_INTENT:
-                                await dc.context.sendActivity('Transaction intent detected');
+                                await dc.context.sendActivity(`Transaction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
                             case FAQ_INTENT:
                                 await this.sendFAQActions(context);
