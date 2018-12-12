@@ -9,15 +9,21 @@ const { LuisRecognizer } = require('botbuilder-ai');
 const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
 const { UserProfile } = require('./dialogs/greeting/userProfile');
+const { EntityProfile } = require('./dialogs/entityProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
+const { CorrectionDialog } = require('./dialogs/correction');
 
 // Greeting Dialog ID
 const GREETING_DIALOG = 'greetingDialog';
 
+// Greeting Dialog ID
+const CORRECTION_DIALOG = 'correcctionDialog';
+
 // State Accessor Properties
 const DIALOG_STATE_PROPERTY = 'dialogState';
 const USER_PROFILE_PROPERTY = 'userProfileProperty';
+const ENTITY_PROFILE_PROPERTY = 'entityProfileProperty';
 
 // LUIS service type entry as defined in the .bot file.
 const LUIS_CONFIGURATION = 'BasicBotLuisApplication';
@@ -38,8 +44,10 @@ const YES_INTENT='Yes';
 const NO_INTENT='No';
 
 // Supported LUIS Entities, defined in ./dialogs/greeting/resources/greeting.lu
-const USER_NAME_ENTITIES = ['userName', 'userName_patternAny'];
-const USER_LOCATION_ENTITIES = ['userLocation', 'userLocation_patternAny'];
+const CORRECTION_ENTITIES = ['Correction'];
+const ASSIGNMENT_ENTITIES = ['Assignment'];
+const LOGIN_ENTITIES = ['Login'];
+const REPORT_ENTITIES = ['Report'];
 
 
 /**
@@ -82,11 +90,15 @@ class BasicBot {
         // Create the property accessors for user and conversation state
         this.userProfileAccessor = userState.createProperty(USER_PROFILE_PROPERTY);
         this.dialogState = conversationState.createProperty(DIALOG_STATE_PROPERTY);
+        this.entityProfileAccessor = conversationState.createProperty(ENTITY_PROFILE_PROPERTY);
 
         // Create top-level dialog(s)
         this.dialogs = new DialogSet(this.dialogState);
         // Add the Greeting dialog to the set
         this.dialogs.add(new GreetingDialog(GREETING_DIALOG, this.userProfileAccessor));
+
+        // Add the Correction dialog to the set
+        this.dialogs.add(new CorrectionDialog(CORRECTION_DIALOG, this.entityProfileAccessor));
 
         this.conversationState = conversationState;
         this.userState = userState;
@@ -121,6 +133,8 @@ class BasicBot {
             // or user saying something like 'i'm {userName}' while we have no active multi-turn dialog.
             await this.updateUserProfile(results, context);
 
+            await this.updateEntityProfile(results, context);
+
             // Based on LUIS topIntent, evaluate if we have an interruption.
             // Interruption here refers to user looking for help/ cancel existing dialog
             const interrupted = await this.isTurnInterrupted(dc, results);
@@ -143,11 +157,13 @@ class BasicBot {
                         // Determine what we should do based on the top intent from LUIS.
                         switch (topIntent) {
                             case GREETING_INTENT:
+                                await this.updateUserProfile(results, context);
                                 await dc.beginDialog(GREETING_DIALOG);
                                 break;
                             
                             case ASSIGNMENT_INTENT:
                                 await dc.context.sendActivity(`Assignment intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                await dc.beginDialog(CORRECTION_DIALOG);
                                 break;
                                 
                             case LOGIN_INTENT:
@@ -252,6 +268,34 @@ class BasicBot {
             return true; // this is an interruption
         }
         return false; // this is not an interruption
+    }
+
+    /**
+     * Helper function to update user profile with entities returned by LUIS.
+     *
+     * @param {LuisResults} luisResults - LUIS recognizer results
+     * @param {DialogContext} dc - dialog context
+     */
+    async updateEntityProfile(luisResult, dc) {
+        // Do we have any entities?
+        if (Object.keys(luisResult.entities).length !== 1) {
+            // get userProfile object using the accessor
+            let entityProfile = await this.entityProfileAccessor.get(dc);
+            if (entityProfile === undefined) {
+                entityProfile = new EntityProfile();
+            }
+            // see if we have any user name entities
+            CORRECTION_ENTITIES.forEach(entity => {
+                if (luisResult.entities[entity] !== undefined) {
+                    //let lowerCaseName = luisResult.entities[role][0];
+                    // capitalize and set user name
+                    //userProfile.name = lowerCaseName.charAt(0).toUpperCase() + lowerCaseName.substr(1);
+                    entityProfile.entity = luisResult.entities[entity][0];
+                }
+            });
+            // set the new values
+            await this.entityProfileAccessor.set(dc, entityProfile);
+        }
     }
 
     /**
