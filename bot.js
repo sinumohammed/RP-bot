@@ -74,6 +74,7 @@ class BasicBot {
      * @param {UserState} userState property accessor
      * @param {BotConfiguration} botConfig contents of the .bot file
      */
+     
     constructor(conversationState, userState, botConfig) {
         if (!conversationState) throw new Error('Missing parameter.  conversationState is required');
         if (!userState) throw new Error('Missing parameter.  userState is required');
@@ -297,6 +298,14 @@ class BasicBot {
                     entityProfile.entity = luisResult.entities[entity][0];
                 }
             });
+            REPORT_ENTITIES.forEach(entity => {
+                if (luisResult.entities[entity] !== undefined) {
+                    //let lowerCaseName = luisResult.entities[role][0];
+                    // capitalize and set user name
+                    //userProfile.name = lowerCaseName.charAt(0).toUpperCase() + lowerCaseName.substr(1);
+                    entityProfile.entity = luisResult.entities[entity][0];
+                }
+            });
             // set the new values
             await this.entityProfileAccessor.set(dc, entityProfile);
         }
@@ -349,9 +358,10 @@ class BasicBot {
 
      * @param {TurnContext} turnContext A TurnContext instance containing all the data needed for processing this conversation turn.
 
-     */
+     */     
+     
     async sendFAQActions(turnContext) {
-
+        
         var reply = MessageFactory.suggestedActions(
             [
                 'change',

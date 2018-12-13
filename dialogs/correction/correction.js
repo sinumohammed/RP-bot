@@ -68,6 +68,7 @@ class Correction extends ComponentDialog {
     async initializeStateStep(step) {
 
     let entityProfile = await this.entityProfileAccessor.get(step.context);
+    console.log(entityProfile,'initialize')
     if (entityProfile === undefined || (entityProfile && !entityProfile.entity)) {
         var reply = MessageFactory.suggestedActions(
             [
@@ -78,7 +79,6 @@ class Correction extends ComponentDialog {
             'Do you want to change?');
 
         await step.context.sendActivity(reply);
-        return await step.endDialog();
     }
     return await step.next();
 }
@@ -137,6 +137,8 @@ async responseForSupervisorStep(step) {
         } else {
             await step.context.sendActivity("Please contact your HR to  update in PDM.");
         }
+        entityProfile.reset = true;
+        await this.entityProfileAccessor.set(step.context, entityProfile);
     }
     return await step.next();
 }

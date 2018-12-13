@@ -14,9 +14,9 @@ const { EntityProfile } = require('../entityProfile');
 
 // Identifies the last question asked.
 const reports = {
-    BIRT: "BIRT",
-    Qliksense: "Qliksense",
-    Qlikview: "Qlikview"
+    BIRT: "birt",
+    Qliksense: "qliksense",
+    Qlikview: "qlikview"
 }
 
 // Prompt IDs
@@ -50,7 +50,8 @@ class Report extends ComponentDialog {
             this.responseForBIRTBrowsersStep.bind(this),
             this.promptForQlikviewStep.bind(this),
             this.responseForQlikviewStep.bind(this),
-            this.promptForQliksenseStep.bind(this)
+            this.promptForQliksenseStep.bind(this),
+            this.responseForQliksenseStep.bind(this)
         ]));
 
         // Add choice prompts for name and city
@@ -118,7 +119,7 @@ class Report extends ComponentDialog {
             } else {
                 entityProfile.reset = false;
                 await this.entityProfileAccessor.set(step.context, entityProfile);
-                return await step.prompt(CONFIRM_PROMPT, 'Which Browser you are logged in ?', ['Internet explorer', 'Chrome', 'Firefox']);
+                return await step.prompt(CONFIRM_PROMPT, 'Which Browser you are logged in?', ['Internet explorer', 'Chrome', 'Firefox']);
             }
         }
         return await step.next();
@@ -156,7 +157,7 @@ class Report extends ComponentDialog {
         if (entityProfile && entityProfile.entity.toLowerCase() == reports.Qlikview) {
             entityProfile.reset = false;
             await this.entityProfileAccessor.set(step.context, entityProfile);
-            return await step.prompt(CONFIRM_PROMPT, 'Please select an issue that you are facing ?', ['Access Denied', 'Not showing the recent data']);
+            return await step.prompt(CONFIRM_PROMPT, 'Which issue that you are facing?', ['Access Denied', 'Not showing data']);
         }
         return await step.next();
     }
@@ -177,6 +178,8 @@ class Report extends ComponentDialog {
                 await step.context.sendActivity("The qlikview data refresh time is : 9.30 PM EST.");
                 await step.context.sendActivity("Please try to extract the report after the  refresh timings.");
             }
+            entityProfile.reset = true;
+            await this.entityProfileAccessor.set(step.context, entityProfile);
         }
         return await step.next();
     }
@@ -193,7 +196,7 @@ class Report extends ComponentDialog {
         if (entityProfile && entityProfile.entity.toLowerCase() == reports.Qliksense) {
             entityProfile.reset = false;
             await this.entityProfileAccessor.set(step.context, entityProfile);
-            return await step.prompt(CONFIRM_PROMPT, 'Please select an issue that you are facing ?', ['Access Denied', 'Not showing the recent data']);
+            return await step.prompt(CONFIRM_PROMPT, 'Please select an issue that you are facing ?', ['Access Denied', 'Not showing data']);
         }
         return await step.next();
     }
@@ -205,7 +208,7 @@ class Report extends ComponentDialog {
      *
      * @param {WaterfallStepContext} step contextual information for the current step being executed
      */
-    async responseForQlikviewStep(step) {
+    async responseForQliksenseStep(step) {
         let entityProfile = await this.entityProfileAccessor.get(step.context);
         if (entityProfile && entityProfile.entity.toLowerCase() == reports.Qliksense) {
             if (step.result && step.result.value.toLowerCase() === 'access Denied') {
@@ -218,6 +221,8 @@ class Report extends ComponentDialog {
                 await step.context.sendActivity("Active Projects : 10.30 PM EST.");
                 await step.context.sendActivity("Please try to extract the report after 45 mins of refresh timings to get the latest data.");
             }
+            entityProfile.reset = true;
+            await this.entityProfileAccessor.set(step.context, entityProfile);
         }
         return await step.next();
     }
