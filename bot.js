@@ -15,6 +15,8 @@ const { GreetingDialog } = require('./dialogs/greeting');
 const { CorrectionDialog } = require('./dialogs/correction');
 const { ReportDialog } = require('./dialogs/report');
 const { AssignmentDialog } = require('./dialogs/assignment');
+const { LoginDialog } = require('./dialogs/login');
+const { TransactionDialog } = require('./dialogs/transaction');
 
 // Greeting Dialog ID
 const GREETING_DIALOG = 'greetingDialog';
@@ -25,8 +27,14 @@ const CORRECTION_DIALOG = 'correcctionDialog';
 // Report Dialog ID
 const REPORT_DIALOG = 'reportDialog';
 
-// Report Dialog ID
+// Assignment Dialog ID
 const ASSIGNMENT_DIALOG = 'assignmentDialog';
+
+// Login Dialog ID
+const LOGIN_DIALOG = 'assignmentDialog';
+
+// Transaction Dialog ID
+const TRANSACTION_DIALOG = 'assignmentDialog';
 
 // State Accessor Properties
 const DIALOG_STATE_PROPERTY = 'dialogState';
@@ -108,11 +116,17 @@ class BasicBot {
         // Add the Correction dialog to the set
         this.dialogs.add(new CorrectionDialog(CORRECTION_DIALOG, this.entityProfileAccessor));
 
-        // Add the Correction dialog to the set
+        // Add the Report dialog to the set
         this.dialogs.add(new ReportDialog(REPORT_DIALOG, this.entityProfileAccessor));
 
-        // Add the Correction dialog to the set
+        // Add the Assignment dialog to the set
         this.dialogs.add(new AssignmentDialog(ASSIGNMENT_DIALOG, this.entityProfileAccessor));
+
+        // Add the Login dialog to the set
+        this.dialogs.add(new LoginDialog(LOGIN_DIALOG, this.entityProfileAccessor));
+
+        // Add the Transaction dialog to the set
+        this.dialogs.add(new TransactionDialog(TRANSACTION_DIALOG, this.entityProfileAccessor));
 
         this.conversationState = conversationState;
         this.userState = userState;
@@ -180,7 +194,8 @@ class BasicBot {
                                 break;
 
                             case LOGIN_INTENT:
-                                await dc.context.sendActivity(`Login intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                //await dc.context.sendActivity(`Login intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                await dc.beginDialog(LOGIN_DIALOG);
                                 break;
 
                             case REPORT_INTENT:
@@ -194,7 +209,8 @@ class BasicBot {
                                 break;
 
                             case TRANSACTION_INTENT:
-                                await dc.context.sendActivity(`Transaction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                //await dc.context.sendActivity(`Transaction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                await dc.beginDialog(TRANSACTION_DIALOG);
                                 break;
                             case FAQ_INTENT:
                                 await this.sendFAQActions(context);
@@ -309,6 +325,11 @@ class BasicBot {
                 }
             });
             ASSIGNMENT_ENTITIES.forEach(entity => {
+                if (luisResult.entities[entity] !== undefined) {
+                    entityProfile.entity = luisResult.entities[entity][0];
+                }
+            });
+            LOGIN_ENTITIES.forEach(entity => {
                 if (luisResult.entities[entity] !== undefined) {
                     entityProfile.entity = luisResult.entities[entity][0];
                 }
