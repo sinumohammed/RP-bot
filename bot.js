@@ -14,6 +14,7 @@ const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
 const { CorrectionDialog } = require('./dialogs/correction');
 const { ReportDialog } = require('./dialogs/report');
+const { AssignmentDialog } = require('./dialogs/assignment');
 
 // Greeting Dialog ID
 const GREETING_DIALOG = 'greetingDialog';
@@ -23,6 +24,9 @@ const CORRECTION_DIALOG = 'correcctionDialog';
 
 // Report Dialog ID
 const REPORT_DIALOG = 'reportDialog';
+
+// Report Dialog ID
+const ASSIGNMENT_DIALOG = 'assignmentDialog';
 
 // State Accessor Properties
 const DIALOG_STATE_PROPERTY = 'dialogState';
@@ -74,7 +78,7 @@ class BasicBot {
      * @param {UserState} userState property accessor
      * @param {BotConfiguration} botConfig contents of the .bot file
      */
-     
+
     constructor(conversationState, userState, botConfig) {
         if (!conversationState) throw new Error('Missing parameter.  conversationState is required');
         if (!userState) throw new Error('Missing parameter.  userState is required');
@@ -106,6 +110,9 @@ class BasicBot {
 
         // Add the Correction dialog to the set
         this.dialogs.add(new ReportDialog(REPORT_DIALOG, this.entityProfileAccessor));
+
+        // Add the Correction dialog to the set
+        this.dialogs.add(new AssignmentDialog(ASSIGNMENT_DIALOG, this.entityProfileAccessor));
 
         this.conversationState = conversationState;
         this.userState = userState;
@@ -168,7 +175,8 @@ class BasicBot {
                                 break;
 
                             case ASSIGNMENT_INTENT:
-                                await dc.context.sendActivity(`Assignment intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                //await dc.context.sendActivity(`Assignment intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                await dc.beginDialog(ASSIGNMENT_DIALOG);
                                 break;
 
                             case LOGIN_INTENT:
@@ -357,10 +365,10 @@ class BasicBot {
 
      * @param {TurnContext} turnContext A TurnContext instance containing all the data needed for processing this conversation turn.
 
-     */     
-     
+     */
+
     async sendFAQActions(turnContext) {
-        
+
         var reply = MessageFactory.suggestedActions(
             [
                 'change',
