@@ -292,17 +292,16 @@ class BasicBot {
             // see if we have any user name entities
             CORRECTION_ENTITIES.forEach(entity => {
                 if (luisResult.entities[entity] !== undefined) {
-                    //let lowerCaseName = luisResult.entities[role][0];
-                    // capitalize and set user name
-                    //userProfile.name = lowerCaseName.charAt(0).toUpperCase() + lowerCaseName.substr(1);
                     entityProfile.entity = luisResult.entities[entity][0];
                 }
             });
             REPORT_ENTITIES.forEach(entity => {
                 if (luisResult.entities[entity] !== undefined) {
-                    //let lowerCaseName = luisResult.entities[role][0];
-                    // capitalize and set user name
-                    //userProfile.name = lowerCaseName.charAt(0).toUpperCase() + lowerCaseName.substr(1);
+                    entityProfile.entity = luisResult.entities[entity][0];
+                }
+            });
+            ASSIGNMENT_ENTITIES.forEach(entity => {
+                if (luisResult.entities[entity] !== undefined) {
                     entityProfile.entity = luisResult.entities[entity][0];
                 }
             });

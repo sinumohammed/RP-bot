@@ -140,6 +140,8 @@ class Report extends ComponentDialog {
             } else {
                 await step.context.sendActivity("Pleae try accessing BIRT report in Internet explorer.");
             }
+            entityProfile.reset = true;
+            await this.entityProfileAccessor.set(step.context, entityProfile);
         }
         return await step.next();
     }
