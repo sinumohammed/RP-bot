@@ -5,8 +5,9 @@
  * Simple Entity class.
  */
 class EntityProfile {
-    constructor(entity) {
+    constructor(entity, action, reset) {
         this.entity = entity || undefined;
+        this.reset = reset || true;
     }
 };
 

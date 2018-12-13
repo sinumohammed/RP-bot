@@ -34,21 +34,20 @@ const CANCEL_INTENT = 'Cancel';
 const HELP_INTENT = 'Help';
 const NONE_INTENT = 'None';
 
-const ASSIGNMENT_INTENT='Assignment';
-const CORRECTION_INTENT='Correction';
-const LOGIN_INTENT='Login';
-const REPORT_INTENT='Report';
-const TRANSACTION_INTENT='Transaction';
-const FAQ_INTENT='FAQ';
-const YES_INTENT='Yes';
-const NO_INTENT='No';
+const ASSIGNMENT_INTENT = 'Assignment';
+const CORRECTION_INTENT = 'Correction';
+const LOGIN_INTENT = 'Login';
+const REPORT_INTENT = 'Report';
+const TRANSACTION_INTENT = 'Transaction';
+const FAQ_INTENT = 'FAQ';
+const YES_INTENT = 'Yes';
+const NO_INTENT = 'No';
 
 // Supported LUIS Entities, defined in ./dialogs/greeting/resources/greeting.lu
 const CORRECTION_ENTITIES = ['Correction'];
 const ASSIGNMENT_ENTITIES = ['Assignment'];
 const LOGIN_ENTITIES = ['Login'];
 const REPORT_ENTITIES = ['Report'];
-
 
 /**
  * Demonstrates the following concepts:
@@ -90,7 +89,7 @@ class BasicBot {
         // Create the property accessors for user and conversation state
         this.userProfileAccessor = userState.createProperty(USER_PROFILE_PROPERTY);
         this.dialogState = conversationState.createProperty(DIALOG_STATE_PROPERTY);
-        this.entityProfileAccessor = conversationState.createProperty(ENTITY_PROFILE_PROPERTY);
+        this.entityProfileAccessor = userState.createProperty(ENTITY_PROFILE_PROPERTY);
 
         // Create top-level dialog(s)
         this.dialogs = new DialogSet(this.dialogState);
@@ -102,9 +101,7 @@ class BasicBot {
 
         this.conversationState = conversationState;
         this.userState = userState;
-        
     }
-
     /**
      * Driver code that does one of the following:
      * 1. Display a welcome card upon receiving ConversationUpdate activity
@@ -114,6 +111,7 @@ class BasicBot {
      *
      * @param {Context} context turn context from the adapter
      */
+     
     async onTurn(context) {
         // Handle Message activity type, which is the main activity type for shown within a conversational interface
         // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
@@ -125,13 +123,13 @@ class BasicBot {
 
             // Perform a call to LUIS to retrieve results for the current activity message.
             const results = await this.luisRecognizer.recognize(context);
-            
+
             const topIntent = LuisRecognizer.topIntent(results);
-            
+
             // update user profile property with any entities captured by LUIS
             // This could be user responding with their name or city while we are in the middle of greeting dialog,
             // or user saying something like 'i'm {userName}' while we have no active multi-turn dialog.
-            await this.updateUserProfile(results, context);
+            //await this.updateUserProfile(results, context);
 
             await this.updateEntityProfile(results, context);
 
@@ -148,50 +146,50 @@ class BasicBot {
                 dialogResult = await dc.continueDialog();
             }
 
+
             // If no active dialog or no active dialog has responded,
             if (!dc.context.responded) {
                 // Switch on return results from any active dialog.
-                switch (dialogResult.status) {                    
+                switch (dialogResult.status) {
                     // dc.continueDialog() returns DialogTurnStatus.empty if there are no active dialogs
                     case DialogTurnStatus.empty:
                         // Determine what we should do based on the top intent from LUIS.
                         switch (topIntent) {
                             case GREETING_INTENT:
-                                await this.updateUserProfile(results, context);
                                 await dc.beginDialog(GREETING_DIALOG);
                                 break;
-                            
+
                             case ASSIGNMENT_INTENT:
                                 await dc.context.sendActivity(`Assignment intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
-                                await dc.beginDialog(CORRECTION_DIALOG);
                                 break;
-                                
+
                             case LOGIN_INTENT:
                                 await dc.context.sendActivity(`Login intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
-                                
+
                             case REPORT_INTENT:
                                 await dc.context.sendActivity(`REPORT intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
-                                
+
                             case CORRECTION_INTENT:
-                                await dc.context.sendActivity(`Correction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                //await dc.context.sendActivity(`Correction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                await dc.beginDialog(CORRECTION_DIALOG);
                                 break;
-                                
+
                             case TRANSACTION_INTENT:
                                 await dc.context.sendActivity(`Transaction intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
                                 break;
                             case FAQ_INTENT:
                                 await this.sendFAQActions(context);
                                 break;
-                                
+
                             case NONE_INTENT:
                             default:
                                 // None or no intent identified, either way, let's provide some help
                                 // to the user
                                 await dc.context.sendActivity(`I didn't understand what you just said to me.`);
                                 break;
-                            }
+                        }
                         break;
                     case DialogTurnStatus.waiting:
                         // The active dialog is waiting for a response from the user, so do nothing.
@@ -199,22 +197,22 @@ class BasicBot {
                     case DialogTurnStatus.complete:
                         // All child dialogs have ended. so do nothing.
                         break;
-                    default:                        
+                    default:
                         // Unrecognized status from child dialog. Cancel all dialogs.
                         await dc.cancelAllDialogs();
                         break;
-                }
+                }                                    
             }
         } else if (context.activity.type === ActivityTypes.ConversationUpdate) {
             // Handle ConversationUpdate activity type, which is used to indicates new members add to
             // the conversation.
             // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types                
-           
+
             // Send greeting when users are added to the conversation.
             //await this.sendWelcomeMessage(context);
             // Do we have any new members added to the conversation?
-            if (context.activity.membersAdded.length !== 0) {                
-                               
+            if (context.activity.membersAdded.length !== 0) {
+
                 // Iterate over all new members added to the conversation
                 for (var idx in context.activity.membersAdded) {
                     // Greet anyone that was not the target (recipient) of this message
@@ -230,16 +228,14 @@ class BasicBot {
                         //const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
                         //await context.sendActivity({ attachments: [welcomeCard] });
                     }
-                }
+                }                              
             }
         }
-
+                                                
         // make sure to persist state at the end of a turn.
         await this.conversationState.saveChanges(context);
         await this.userState.saveChanges(context);
     }
-    
-    
     /**
      * Look at the LUIS results and determine if we need to handle
      * an interruptions due to a Help or Cancel intent
@@ -268,8 +264,8 @@ class BasicBot {
             return true; // this is an interruption
         }
         return false; // this is not an interruption
-    }
-
+    }    
+    
     /**
      * Helper function to update user profile with entities returned by LUIS.
      *
@@ -277,10 +273,10 @@ class BasicBot {
      * @param {DialogContext} dc - dialog context
      */
     async updateEntityProfile(luisResult, dc) {
+        // get userProfile object using the accessor
+        let entityProfile = await this.entityProfileAccessor.get(dc);
         // Do we have any entities?
         if (Object.keys(luisResult.entities).length !== 1) {
-            // get userProfile object using the accessor
-            let entityProfile = await this.entityProfileAccessor.get(dc);
             if (entityProfile === undefined) {
                 entityProfile = new EntityProfile();
             }
@@ -296,6 +292,12 @@ class BasicBot {
             // set the new values
             await this.entityProfileAccessor.set(dc, entityProfile);
         }
+        else {            
+            if (entityProfile && entityProfile.reset) {                
+                // set the value to null
+                await this.entityProfileAccessor.set(dc, undefined);
+            }
+        }
     }
 
     /**
@@ -304,6 +306,7 @@ class BasicBot {
      * @param {LuisResults} luisResults - LUIS recognizer results
      * @param {DialogContext} dc - dialog context
      */
+               
     async updateUserProfile(luisResult, context) {
         // Do we have any entities?
         if (Object.keys(luisResult.entities).length !== 1) {
@@ -331,7 +334,7 @@ class BasicBot {
             await this.userProfileAccessor.set(context, userProfile);
         }
     }
-    
+
     /**
 
      * Send suggested actions to the user.
@@ -339,24 +342,23 @@ class BasicBot {
      * @param {TurnContext} turnContext A TurnContext instance containing all the data needed for processing this conversation turn.
 
      */
-
     async sendFAQActions(turnContext) {
 
         var reply = MessageFactory.suggestedActions(
             [
-                'Do you want to change your supervisor?', 
-                'Do you want to change your backup approver?', 
+                'change',
+                'Do you want to change your supervisor?',
+                'Do you want to change your backup approver?',
                 'Issue regarding Project assignment \ Hours submission?',
                 'Do you face application login issue?',
                 'Questions regarding Qlikview tool.',
                 'Questions regarding BIRT tool (Reports from RP Report tab).',
                 'Questions regarding Qliksense tool.',
                 'Do you receive the "Transaction not successfully started" error',
-                ], 
-                'Here is the FAQ, ask away');
+            ],
+            'Here is the FAQ, ask away');
 
         await turnContext.sendActivity(reply);
-
     }
 }
 
