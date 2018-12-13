@@ -31,10 +31,10 @@ const REPORT_DIALOG = 'reportDialog';
 const ASSIGNMENT_DIALOG = 'assignmentDialog';
 
 // Login Dialog ID
-const LOGIN_DIALOG = 'assignmentDialog';
+const LOGIN_DIALOG = 'loginDialog';
 
 // Transaction Dialog ID
-const TRANSACTION_DIALOG = 'assignmentDialog';
+const TRANSACTION_DIALOG = 'transactiontDialog';
 
 // State Accessor Properties
 const DIALOG_STATE_PROPERTY = 'dialogState';
@@ -305,6 +305,7 @@ class BasicBot {
      * @param {LuisResults} luisResults - LUIS recognizer results
      * @param {DialogContext} dc - dialog context
      */
+     
     async updateEntityProfile(luisResult, dc) {
         // get userProfile object using the accessor
         let entityProfile = await this.entityProfileAccessor.get(dc);
@@ -379,7 +380,7 @@ class BasicBot {
             await this.userProfileAccessor.set(context, userProfile);
         }
     }
-
+    
     /**
 
      * Send suggested actions to the user.
@@ -392,7 +393,6 @@ class BasicBot {
 
         var reply = MessageFactory.suggestedActions(
             [
-                'change',
                 'Do you want to change your supervisor?',
                 'Do you want to change your backup approver?',
                 'Issue regarding Project assignment \ Hours submission?',
