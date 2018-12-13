@@ -13,12 +13,16 @@ const { EntityProfile } = require('./dialogs/entityProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
 const { CorrectionDialog } = require('./dialogs/correction');
+const { ReportDialog } = require('./dialogs/report');
 
 // Greeting Dialog ID
 const GREETING_DIALOG = 'greetingDialog';
 
-// Greeting Dialog ID
+// Correction Dialog ID
 const CORRECTION_DIALOG = 'correcctionDialog';
+
+// Report Dialog ID
+const REPORT_DIALOG = 'reportDialog';
 
 // State Accessor Properties
 const DIALOG_STATE_PROPERTY = 'dialogState';
@@ -99,6 +103,9 @@ class BasicBot {
         // Add the Correction dialog to the set
         this.dialogs.add(new CorrectionDialog(CORRECTION_DIALOG, this.entityProfileAccessor));
 
+        // Add the Correction dialog to the set
+        this.dialogs.add(new ReportDialog(REPORT_DIALOG, this.entityProfileAccessor));
+
         this.conversationState = conversationState;
         this.userState = userState;
     }
@@ -111,7 +118,7 @@ class BasicBot {
      *
      * @param {Context} context turn context from the adapter
      */
-     
+
     async onTurn(context) {
         // Handle Message activity type, which is the main activity type for shown within a conversational interface
         // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
@@ -168,7 +175,8 @@ class BasicBot {
                                 break;
 
                             case REPORT_INTENT:
-                                await dc.context.sendActivity(`REPORT intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                //await dc.context.sendActivity(`REPORT intent detected, entities included: ${JSON.stringify(results.entities[topIntent])}`);
+                                await dc.beginDialog(REPORT_DIALOG);
                                 break;
 
                             case CORRECTION_INTENT:
@@ -201,7 +209,7 @@ class BasicBot {
                         // Unrecognized status from child dialog. Cancel all dialogs.
                         await dc.cancelAllDialogs();
                         break;
-                }                                    
+                }
             }
         } else if (context.activity.type === ActivityTypes.ConversationUpdate) {
             // Handle ConversationUpdate activity type, which is used to indicates new members add to
@@ -228,10 +236,10 @@ class BasicBot {
                         //const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
                         //await context.sendActivity({ attachments: [welcomeCard] });
                     }
-                }                              
+                }
             }
         }
-                                                
+
         // make sure to persist state at the end of a turn.
         await this.conversationState.saveChanges(context);
         await this.userState.saveChanges(context);
@@ -264,8 +272,8 @@ class BasicBot {
             return true; // this is an interruption
         }
         return false; // this is not an interruption
-    }    
-    
+    }
+
     /**
      * Helper function to update user profile with entities returned by LUIS.
      *
@@ -292,8 +300,8 @@ class BasicBot {
             // set the new values
             await this.entityProfileAccessor.set(dc, entityProfile);
         }
-        else {            
-            if (entityProfile && entityProfile.reset) {                
+        else {
+            if (entityProfile && entityProfile.reset) {
                 // set the value to null
                 await this.entityProfileAccessor.set(dc, undefined);
             }
@@ -306,7 +314,7 @@ class BasicBot {
      * @param {LuisResults} luisResults - LUIS recognizer results
      * @param {DialogContext} dc - dialog context
      */
-               
+
     async updateUserProfile(luisResult, context) {
         // Do we have any entities?
         if (Object.keys(luisResult.entities).length !== 1) {
